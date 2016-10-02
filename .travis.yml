@@ -1,0 +1,57 @@
+language: php
+
+sudo: false
+
+
+matrix:
+  fast_finish: true
+
+  allow_failures:
+  - php: nightly
+
+  include:
+  - php: 5.5
+    env: PROCESS_CODECLIMATE=true SFPROCESS_VERSION=3.0.*
+  - php: 5.5
+    env: SFPROCESS_VERSION=2.*
+
+
+  - php: 5.6
+    env: SFPROCESS_VERSION=2.*
+  - php: 5.6
+    env: SFPROCESS_VERSION=3.0.*
+
+
+  - php: 7.0
+    env: SFPROCESS_VERSION=2.*
+  - php: 7.0
+    env: SFPROCESS_VERSION=3.0.*
+
+  - php: 7.1
+    env: SFPROCESS_VERSION=2.*
+  - php: 7.1
+    env: SFPROCESS_VERSION=3.0.*
+
+  - php: hhvm
+    env: IGNORE_XDEBUG=true SFPROCESS_VERSION=2.*
+  - php: hhvm
+    env: IGNORE_XDEBUG=true SFPROCESS_VERSION=3.0.*
+    env:
+
+  - php: nightly
+
+before_install:
+  - composer require "symfony/process:${SFPROCESS_VERSION}" --no-update
+
+before_script:
+  - if [ -z "$IGNORE_XDEBUG" ];then phpenv config-rm xdebug.ini; fi
+  - composer config -g github-oauth.github.com $GITHUB_COMPOSER_AUTH
+  - travis_retry composer self-update
+  - travis_retry composer update --prefer-dist
+  - if [ -n "$PROCESS_CODECLIMATE" ];then echo 'zend_extension=xdebug.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini; fi
+
+script: ./test/bin/ci.bash summary
+
+cache:
+  directories:
+    - $HOME/.composer/cache
