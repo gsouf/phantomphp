@@ -7,7 +7,7 @@ namespace PhantomPhp\Exception;
 
 use PhantomPhp\Exception;
 
-class TimeoutException extends ResponseReadException
+class ResponseReadException extends Exception
 {
 
 }

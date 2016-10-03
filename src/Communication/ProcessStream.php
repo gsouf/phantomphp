@@ -49,7 +49,13 @@ class ProcessStream implements ChannelInterface
             throw new Exception('Unable to send message. Process is not running.');
         }
 
-        $this->getProcess()->write($message->format() . PHP_EOL);
+        $data = json_encode([
+            'id' => $message->getId(),
+            'action' => $message->getAction(),
+            'data' => $message->getData()
+        ]);
+
+        $this->getProcess()->write($data . PHP_EOL);
     }
 
     /**

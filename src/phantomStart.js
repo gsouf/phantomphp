@@ -40,5 +40,16 @@ if (typeof parsedArgs != 'object') {
         setTimeout(phantom.exit, 0);
     });
 
-    phantomPhp.streamIO(system.stdin, system.stdout);
+    switch (mode) {
+        case 'stream':
+            phantomPhp.streamIO(system.stdin, system.stdout);
+            break;
+        case 'http':
+            phantomPhp.listenHttp(8080);
+            break;
+        default:
+            console.error('Invalid communication mode: ' . mode);
+            phantom.exit();
+            break;
+    }
 }

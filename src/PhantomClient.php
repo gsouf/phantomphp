@@ -5,8 +5,10 @@
 
 namespace PhantomPhp;
 
+use PhantomPhp\Communication\HttpRequest;
 use PhantomPhp\Communication\ProcessStream;
 use PhantomPhp\Communication\ChannelInterface;
+use PhantomPhp\Exception\ResponseReadException;
 use PhantomPhp\Exception\TimeoutException;
 use PhantomPhp\Message\ExitMessage;
 use PhantomPhp\Message\Ping;
@@ -43,6 +45,9 @@ class PhantomClient implements ChannelInterface
         switch ($communicationMode) {
             case Process::COMCHANNEL_STREAM:
                 $this->communicationChannel = new ProcessStream($this->process);
+                break;
+            case Process::COMCHANNEL_HTTP:
+                $this->communicationChannel = new HttpRequest('localhost', 8080);
                 break;
             default:
                 throw new Exception("Communication mode $communicationMode is not valid");
@@ -111,7 +116,7 @@ class PhantomClient implements ChannelInterface
         try {
             $response = $this->waitForResponse($ping, $timeout);
             return $response->getStatus() == Response::STATUS_SUCCESS;
-        } catch (TimeoutException $e) {
+        } catch (ResponseReadException $e) {
             return false;
         }
     }

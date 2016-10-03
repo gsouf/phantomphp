@@ -22,15 +22,6 @@ class Message
         $this->data = $data;
     }
 
-    public function format()
-    {
-        return json_encode([
-            'id' => $this->id,
-            'action' => $this->action,
-            'data' => $this->data
-        ]);
-    }
-
     public function setTimeout($timeout)
     {
         $this->timeout = $timeout;

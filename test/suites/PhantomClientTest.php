@@ -4,6 +4,7 @@
  */
 namespace PhantomPhp\Test;
 
+use PhantomPhp\Communication\HttpRequest;
 use PhantomPhp\Message;
 use PhantomPhp\Message\Ping;
 use PhantomPhp\PhantomClient;
@@ -75,5 +76,30 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($message->getId(), $response->getId());
 
         $client->stop();
+    }
+
+    public function testHttp()
+    {
+
+        $client = new PhantomClient(
+            [
+                __DIR__ . '/../resources/foo.handlers.js',
+                __DIR__ . '/../resources/rejectedMessage.handlers.js'
+            ],
+            'phantomjs',
+            'http'
+        );
+        $client->start();
+
+        $client = new HttpRequest('localhost', 8080);
+
+        $ping = new Ping();
+
+        $client->sendMessage($ping);
+        $response = $client->waitForResponse($ping, 2000);
+
+        $this->assertEquals('pong', $response->getData());
+        $this->assertEquals('success', $response->getStatus());
+        $this->assertEquals($ping->getId(), $response->getId());
     }
 }

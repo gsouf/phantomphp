@@ -153,6 +153,55 @@ PhantomPhp.prototype = {
         };
 
         setTimeout(loop, 0);
+    },
+
+    listenHttp: function (port) {
+        var webserver = require('webserver');
+        var server = webserver.create();
+        var self = this;
+        var service = server.listen(port, function (request, response) {
+
+
+            // Check the url path
+            var urlParts = request.url.split(/\?(.+)?/, 2);
+            if (urlParts.length >= 1) {
+                var message = {};
+                if (urlParts[0] == '/runAction') {
+                    if (request.method == 'POST') {
+                        if (request.post) {
+                            message = request.post;
+                        }
+                    } else if (urlParts == 2) { // else GET
+
+                        // Parse the query
+                        var queryParts = urlParts[1].split('&');
+                        for (var i = 0; i < queryParts.length; i++) {
+                            var queryItem = queryParts[i].split(/\=(.+)?/, 2);
+                            if (queryItem.length == 2) {
+                                message[queryItem[0]] = queryItem[1];
+                            }
+                        }
+                    }
+                    var messageProcessed = false;
+                    var writer = {
+                        writeMessage : function (message) {
+                            if (!messageProcessed) {
+                                response.statusCode = 200;
+                                response.write(JSON.stringify(message));
+                                response.close();
+                                messageProcessed = true;
+                            }
+                        }
+                    };
+
+                    self.processMessage(message, writer);
+                    return;
+                }
+            }
+
+            response.close();
+
+        });
     }
 };
 
