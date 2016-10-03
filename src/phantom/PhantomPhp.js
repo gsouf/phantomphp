@@ -123,7 +123,7 @@ PhantomPhp.prototype = {
     },
 
     /**
-     * The main loop
+     * Start a process that uses given streams to process input and output
      */
     streamIO: function (input, output) {
         var self = this;

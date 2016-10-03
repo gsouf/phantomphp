@@ -32,15 +32,12 @@ class PhantomClient implements ChannelInterface
 
     private function createProcess($communicationMode, array $handlers)
     {
-        $startScript = array_merge(
-            [
-                'exec',
-                $this->phantomjsBinaries,
-                __DIR__ . '/phantomStart.js',
-                $communicationMode
-            ],
-            $handlers
-        );
+        $startScript = [
+            'exec',
+            $this->phantomjsBinaries,
+            __DIR__ . '/phantomStart.js',
+            "'" . json_encode(['mode' => $communicationMode, 'plugins' => $handlers]) . "'"
+        ];
 
         $this->process = new Process(implode(' ', $startScript));
         switch ($communicationMode) {
