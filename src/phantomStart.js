@@ -45,11 +45,18 @@ if (typeof parsedArgs != 'object') {
             phantomPhp.streamIO(system.stdin, system.stdout);
             break;
         case 'http':
-            phantomPhp.listenHttp(8080);
+            var host = parsedArgs.httpPort || 8080;
+            if (parsedArgs.httpHost) {
+                host = parsedArgs.httpHost + ":"+ host;
+            }
+            phantomPhp.listenHttp(host);
             break;
         default:
             console.error('Invalid communication mode: ' . mode);
             phantom.exit();
             break;
     }
+
+    // Notice the caller that the script is started and ready to accept incoming messages
+    console.log('ok');
 }
