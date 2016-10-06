@@ -82,9 +82,25 @@ class PhantomClient implements ChannelInterface
             throw new Exception('Process is already running');
         }
         $process->start();
-        if (!$this->ping(5000)) {
-            throw new Exception('Unable to start process');
-        }
+
+        $this->waitForStart($process);
+    }
+
+    private function waitForStart(Process $process){
+        $dieOn = microtime(true) + 1000 * 500; // 500ms
+        do {
+            usleep(1000 * 20); // 20ms
+            $r = $process->readLine();
+
+            if (trim($r) == 'ok') {
+                if ($this->ping(5000)) {
+                    return true;
+                } else {
+                    break;
+                }
+            }
+        } while (microtime(true) < $dieOn);
+        throw new Exception('Unable to start process');
     }
 
     public function stop()
