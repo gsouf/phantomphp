@@ -18,27 +18,44 @@ class PhantomClient implements ChannelInterface
 {
 
     protected $phantomjsBinaries;
+    /**
+     * @var Process
+     */
     private $process = null;
 
     private $communicationChannel;
+    private $communicationMode;
+    private $handlers;
+    private $additionalOptions;
 
     /**
      * @param $phantomjsBinaries
      */
-    public function __construct(array $handlers = [], $phantomjsBinaries = 'phantomjs', $communicationMode = 'stream')
-    {
-        $this->phantomjsBinaries = $phantomjsBinaries;
-        // Create the process but does not start it for the moment
-        $this->createProcess($communicationMode, $handlers);
+    public function __construct(
+        $phantomjsBinaries = null,
+        $communicationMode = 'stream',
+        array $additionalOptions = []
+    ) {
+    
+        $this->phantomjsBinaries = $phantomjsBinaries ? $phantomjsBinaries : 'phantomjs';
+        $this->communicationMode = $communicationMode;
+        $this->handlers = [];
+        $this->additionalOptions = $additionalOptions;
     }
 
-    private function createProcess($communicationMode, array $handlers)
+    private function createProcess()
     {
+        $communicationMode = $this->communicationMode;
+        $handlers = $this->handlers;
+        $additionalOptions = $this->additionalOptions;
+
+        $startOptions = array_merge(['mode' => $communicationMode, 'plugins' => $handlers], $additionalOptions);
+
         $startScript = [
             'exec',
             $this->phantomjsBinaries,
             __DIR__ . '/phantomStart.js',
-            "'" . json_encode(['mode' => $communicationMode, 'plugins' => $handlers]) . "'"
+            "'" . json_encode($startOptions) . "'"
         ];
 
         $this->process = new Process(implode(' ', $startScript));
@@ -47,24 +64,40 @@ class PhantomClient implements ChannelInterface
                 $this->communicationChannel = new ProcessStream($this->process);
                 break;
             case Process::COMCHANNEL_HTTP:
-                $this->communicationChannel = new HttpRequest('localhost', 8080);
+                $httpPort = isset($this->additionalOptions['httpPort']) ? $this->additionalOptions['httpPort'] : 8080;
+                $this->communicationChannel = new HttpRequest('localhost', $httpPort);
                 break;
             default:
                 throw new Exception("Communication mode $communicationMode is not valid");
         }
     }
 
-    /**
-     * @return Process
-     */
-    protected function getProcess()
+    public function addHandler($handler)
     {
-        return $this->process;
+        if ($this->isRunning()) {
+            throw new Exception('Cannot set handler after process was started');
+        }
+        $this->handlers[] = $handler;
     }
 
+    public function setOption($option, $value)
+    {
+        if ($this->isRunning()) {
+            throw new Exception('Cannot set option after process was started');
+        }
+        $this->additionalOptions[$option] = $value;
+    }
+
+    public function setExecutable($binaries)
+    {
+        if ($this->isRunning()) {
+            throw new Exception('Cannot set executable after process was started');
+        }
+        $this->phantomjsBinaries = $binaries;
+    }
 
     /**
-     * @return ChannelInterface
+     * @return ChannelInterface|null
      */
     public function getCommunicationChannel()
     {
@@ -77,16 +110,20 @@ class PhantomClient implements ChannelInterface
      */
     public function start()
     {
-        $process =$this->getProcess();
-        if ($process->isRunning()) {
+        if (!$this->process) {
+            $this->createProcess();
+        }
+
+        if ($this->process->isRunning()) {
             throw new Exception('Process is already running');
         }
-        $process->start();
+        $this->process->start();
 
-        $this->waitForStart($process);
+        $this->waitForStart($this->process);
     }
 
-    private function waitForStart(Process $process){
+    private function waitForStart(Process $process)
+    {
         $dieOn = microtime(true) + 1000 * 500; // 500ms
         do {
             usleep(1000 * 20); // 20ms
@@ -105,10 +142,13 @@ class PhantomClient implements ChannelInterface
 
     public function stop()
     {
+        if (!$this->process || !$this->process->isRunning()) {
+            throw new Exception('Process is not running');
+        }
         $exit = new ExitMessage();
         $this->sendMessage($exit);
         $this->waitForResponse($exit, 10000);
-        $this->getProcess()->close();
+        $this->process->close();
     }
 
 
@@ -117,7 +157,7 @@ class PhantomClient implements ChannelInterface
      */
     public function isRunning()
     {
-        return $this->getProcess()->isRunning();
+        return $this->process ? $this->process->isRunning() : false;
     }
 
 

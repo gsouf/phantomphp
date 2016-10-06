@@ -171,8 +171,7 @@ PhantomPhp.prototype = {
                         if (request.post) {
                             message = request.post;
                         }
-                    } else if (urlParts == 2) { // else GET
-
+                    } else if (urlParts.length == 2) { // else GET
                         // Parse the query
                         var queryParts = urlParts[1].split('&');
                         for (var i = 0; i < queryParts.length; i++) {

@@ -5,6 +5,7 @@
 namespace PhantomPhp\Test;
 
 use PhantomPhp\Communication\HttpRequest;
+use PhantomPhp\HttpClient;
 use PhantomPhp\Message;
 use PhantomPhp\Message\Ping;
 use PhantomPhp\PhantomClient;
@@ -49,12 +50,10 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
 
     public function testCustomHandlers()
     {
-        $client = new PhantomClient(
-            [
-                __DIR__ . '/../resources/foo.handlers.js',
-                __DIR__ . '/../resources/rejectedMessage.handlers.js'
-            ]
-        );
+        $client = new PhantomClient();
+        $client->addHandler(__DIR__ . '/../resources/foo.handlers.js');
+        $client->addHandler(__DIR__ . '/../resources/rejectedMessage.handlers.js');
+
         $this->assertFalse($client->isRunning());
 
         $client->start();
@@ -63,8 +62,8 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $message = new Message('foo');
         $client->sendMessage($message);
         $response = $client->waitForResponse($message, 1000);
-        $this->assertEquals('foobar', $response->getData());
         $this->assertEquals(Response::STATUS_SUCCESS, $response->getStatus());
+        $this->assertEquals('foobar', $response->getData());
         $this->assertEquals($message->getId(), $response->getId());
 
         $message = new Message('rejectedMessage');
@@ -81,25 +80,40 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
     public function testHttp()
     {
 
-        $client = new PhantomClient(
-            [
-                __DIR__ . '/../resources/foo.handlers.js',
-                __DIR__ . '/../resources/rejectedMessage.handlers.js'
-            ],
-            'phantomjs',
-            'http'
-        );
+        $client = new HttpClient();
+        $client->addHandler(__DIR__ . '/../resources/foo.handlers.js');
+        $client->addHandler(__DIR__ . '/../resources/rejectedMessage.handlers.js');
         $client->start();
 
-        $client = new HttpRequest('localhost', 8080);
+        $channel = new HttpRequest('localhost', 8080);
 
         $ping = new Ping();
 
-        $client->sendMessage($ping);
-        $response = $client->waitForResponse($ping, 2000);
+        $channel->sendMessage($ping);
+        $response = $channel->waitForResponse($ping, 2000);
 
         $this->assertEquals('pong', $response->getData());
         $this->assertEquals('success', $response->getStatus());
         $this->assertEquals($ping->getId(), $response->getId());
+        $client->stop();
+    }
+
+    public function testHttpCustomPort()
+    {
+
+        $client = new HttpClient(8282);
+        $client->start();
+
+        $channel = new HttpRequest('127.0.0.1', 8282);
+
+        $ping = new Ping();
+
+        $channel->sendMessage($ping);
+        $response = $channel->waitForResponse($ping, 2000);
+
+        $this->assertEquals('pong', $response->getData());
+        $this->assertEquals('success', $response->getStatus());
+        $this->assertEquals($ping->getId(), $response->getId());
+        $client->stop();
     }
 }
