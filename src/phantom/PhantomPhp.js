@@ -144,6 +144,7 @@ PhantomPhp.prototype = {
             var writer;
             var message;
 
+            // Try/Catch is necessary to handle errors (or else error are not printed) and to format them correctly
             try {
                 // Check the url path
                 var urlParts = request.url.split(/\?(.+)?/, 2);
@@ -202,6 +203,7 @@ PhantomPhp.prototype = {
         });
 
         if (started) {
+            // Before close we need to shutdown the http server and wait for it to be stopped
             self.beforeClose = function () {
 
                 var wait = function (ms) {

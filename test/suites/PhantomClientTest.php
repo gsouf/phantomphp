@@ -118,7 +118,7 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $client->stop();
     }
 
-    public function testPageApi()
+    public function testPageLowLevelApi()
     {
 
 
@@ -127,18 +127,43 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
 
         $channel = new HttpRequest('127.0.0.1', 8282);
 
+
         // Create page
         $message = new Message('pageCreate');
         $channel->sendMessage($message);
         $response = $channel->waitForResponse($message, 2000);
         $pageId = $response->getData('pageId');
 
+
         // Navigate
-        $message = new Message('pageNavigate', ['pageId' => $pageId, 'url' => 'http://httpbin.org/get?a']);
+        $message = new Message(
+            'pageNavigate',
+            ['pageId' => $pageId, 'url' => 'http://httpbin.org/redirect-to?url=http://httpbin.org/get?a=b']
+        );
         $channel->sendMessage($message);
         $response = $channel->waitForResponse($message, 3000);
         $this->assertEquals('success', $response->getStatus());
-        $this->assertEquals('http://httpbin.org/get?a', $response->getData('url'));
+        $this->assertEquals('http://httpbin.org/get?a=b', $response->getData('url'));
+
+
+        // Get content
+        $message = new Message(
+            'pageGetDom',
+            ['pageId' => $pageId]
+        );
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 3000);
+        $this->assertEquals('success', $response->getStatus());
+
+        $dom = new \SimpleXMLElement($response->getData('DOM'));
+        $element = $dom->xpath('//pre');
+        $element = json_decode((string)$element[0]);
+
+        $this->assertEquals('b', $element->args->a);
+        $this->assertEquals('http://httpbin.org/get?a=b', $element->url);
+
+
+
 
         $client->stop();
     }

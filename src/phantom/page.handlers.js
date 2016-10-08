@@ -64,7 +64,6 @@ module.exports = {
         },
 
         "pageNavigate": function (message, resolve, reject, phantomPhp) {
-
             var pageId = message.data.pageId;
             var url = message.data.url;
 
@@ -72,7 +71,13 @@ module.exports = {
                 reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
             } else {
                 var page = pages[pageId];
-                console.log('opening');
+
+                pagesResources[pageId] = {
+                    error: null,
+                    headers: null,
+                    statusCode: null
+                };
+
                 page.open(url, {}, function (status) {
                     if (status !== 'success') {
                         reject('Could not fetch the page for the url: "' + url + '". Reason: ' + pagesResources[pageId].error, 'CannotNavigateToUrl');
@@ -81,7 +86,17 @@ module.exports = {
                     }
                 });
             }
+        },
 
+        "pageGetDom": function (message, resolve, reject, phantomPhp) {
+            var pageId = message.data.pageId;
+
+            if (!pages[pageId]) {
+                reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
+            } else {
+                var page = pages[pageId];
+                resolve({DOM: page.content});
+            }
         }
     }
 };

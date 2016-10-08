@@ -113,7 +113,9 @@ class HttpRequest implements ChannelInterface
                 curl_close($doneHandle['handle']);
             } else {
                 $errorMsg = curl_error($doneHandle['handle']);
-                throw new Exception\ResponseReadException('Unable to connect to phantom process. Curl error: ' . $errorMsg);
+                throw new Exception\ResponseReadException(
+                    'Unable to connect to phantom process. Curl error: ' . $errorMsg
+                );
             }
         }
     }
