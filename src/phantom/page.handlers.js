@@ -4,20 +4,20 @@ var webPage = require('webpage');
 var pages = {};
 
 
-var generatePageId = function(){
+var generatePageId = function () {
     return ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).slice(-4);
 };
 
-var createPage = function(pageId, options){
-    if(!pageId){
-        do{
+var createPage = function (pageId, options) {
+    if (!pageId) {
+        do {
             pageId = generatePageId();
-        }while(pages[pageId]);
+        } while (pages[pageId]);
     }
 
-    if(pages[pageId]){
+    if (pages[pageId]) {
         return false;
-    }else{
+    } else {
         var page = webPage.create();
         pages[pageId] = page;
     }
@@ -30,9 +30,9 @@ module.exports = {
         "pageCreate": function (message, resolve, reject, phantomPhp) {
             var pageId = createPage(null, message.data ? message.data.pageId : null);
 
-            if(false === pageId){
+            if (false === pageId) {
                 reject('Page with id ' + pageId + ' was already created', 'pageIdAlreadyExists');
-            }else{
+            } else {
                 resolve({pageId: pageId});
             }
         },
@@ -44,9 +44,9 @@ module.exports = {
             var pageId = message.data.pageId;
             var url = message.data.url;
 
-            if(!pages[pageId]){
+            if (!pages[pageId]) {
                 reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
-            }else{
+            } else {
                 resolve('ok');
             }
 

@@ -60,7 +60,7 @@ PhantomPhp.prototype = {
      * called when an error happens in the global script
      */
     writeRuntimeError: function (error, message, writer, stack) {
-        if(!stack) {
+        if (!stack) {
             try {
                 throw new Error();
             } catch (err) {
@@ -78,7 +78,7 @@ PhantomPhp.prototype = {
         };
 
         if (message) {
-            if(!message.done){
+            if (!message.done) {
                 data.id = message.id;
             }
         }
@@ -151,9 +151,9 @@ PhantomPhp.prototype = {
                     if (urlParts[0] == '/runAction') {
                         if (request.method == 'POST') {
                             if (request.post) {
-                                if(request.post.message){
+                                if (request.post.message) {
                                     message = JSON.parse(request.post.message);
-                                }else{
+                                } else {
                                     throw new Error('Query data must have a json encoded message');
                                 }
                             }
@@ -185,13 +185,12 @@ PhantomPhp.prototype = {
                         return;
                     }
                 }
-
             } catch (e) {
-                try{
+                try {
                     var errorMessage = e.message || 'Error while processing message';
                     var errorStack   = e.stack;
                     self.writeRuntimeError(errorMessage, message, writer, errorStack);
-                }catch (e) {
+                } catch (e) {
                     console.error(e);
                 }
                 return;
