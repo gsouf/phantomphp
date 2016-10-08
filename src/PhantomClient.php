@@ -129,15 +129,19 @@ class PhantomClient implements ChannelInterface
             usleep(1000 * 20); // 20ms
             $r = $process->readLine();
 
-            if (trim($r) == 'ok') {
+            $r = trim($r);
+
+            if ($r === 'ok') {
                 if ($this->ping(5000)) {
                     return true;
                 } else {
                     break;
                 }
+            } elseif ($r === 'error') {
+                throw new Exception('Unable to start process. The process has crashed before startup.');
             }
         } while (microtime(true) < $dieOn);
-        throw new Exception('Unable to start process');
+        throw new Exception('Unable to start process. The process is not responding.');
     }
 
     public function stop()

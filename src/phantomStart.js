@@ -47,16 +47,24 @@ if (typeof parsedArgs != 'object') {
         setTimeout(phantom.exit, 0);
     });
 
+    var listening = false;
+
     switch (mode) {
         case 'stream':
             phantomPhp.streamIO(system.stdin, system.stdout);
+            listening = true;
             break;
         case 'http':
             var host = parsedArgs.httpPort || 8080;
             if (parsedArgs.httpHost) {
                 host = parsedArgs.httpHost + ":"+ host;
             }
-            phantomPhp.listenHttp(host);
+            listening = phantomPhp.listenHttp(host);
+            if(!listening){
+                console.error('Unable to start phantom server');
+            }else{
+                console.log('listening message on: ' + host);
+            }
             break;
         default:
             console.error('Invalid communication mode: ' . mode);
@@ -64,6 +72,12 @@ if (typeof parsedArgs != 'object') {
             break;
     }
 
+    if(listening){
+        console.log('ok');
+    }else{
+        console.log('error');
+        setTimeout(phantom.exit, 0);
+    }
+
     // Notice the caller that the script is started and ready to accept incoming messages
-    console.log('ok');
 }

@@ -138,7 +138,7 @@ PhantomPhp.prototype = {
         var server = webserver.create();
         var self = this;
 
-        var service = server.listen(port, function (request, response) {
+        var started = server.listen(port, function (request, response) {
 
             var writer;
             var message;
@@ -199,6 +199,8 @@ PhantomPhp.prototype = {
             response.close();
 
         });
+
+        return started;
     }
 };
 
