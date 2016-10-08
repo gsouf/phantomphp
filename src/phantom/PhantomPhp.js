@@ -196,6 +196,7 @@ PhantomPhp.prototype = {
                 return;
             }
 
+            response.write('');
             response.close();
 
         });
@@ -212,7 +213,7 @@ PhantomPhp.prototype = {
                 };
 
                 // Wait to previous response to be fully sent
-                wait(200);
+                wait(20);
                 setTimeout(function () {
                     server.close()}, 1);
                 // Wait to make sure it closes before phantom process
