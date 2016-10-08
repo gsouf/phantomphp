@@ -3,7 +3,9 @@ PhantomPhp
 
 WIP
 
-Start a phantomjs process, and control it from php.
+Start a phantomjs process and control it from php.
+
+Disclaimer: Not tested on windows and thus it might work only on unix systems 
 
 
 Overview
@@ -72,5 +74,6 @@ TODO: Plug action example
 Roadmap
 -------
 
-- Ability to access the same phantomjs process from multiple php scripts
 - Offer a webpage communication api (open a page with proxy/cookies, navigate, interact, screenshot, close page...) 
+- Test error
+- File log

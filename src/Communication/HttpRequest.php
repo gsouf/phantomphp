@@ -54,8 +54,8 @@ class HttpRequest implements ChannelInterface
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, count($data));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['message' => json_encode($data)]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $mh = $this->getMultiHandler();
@@ -103,13 +103,19 @@ class HttpRequest implements ChannelInterface
     {
         $mh = $this->getMultiHandler();
         while ($doneHandle = curl_multi_info_read($mh)) {
-            $output = curl_multi_getcontent($doneHandle['handle']);
-            $output = json_decode($output, true);
-            if ($output) {
-                $this->responsePool->addResponse(Response::parse($output));
+            if(CURLE_OK == $doneHandle['result']){
+                $output = curl_multi_getcontent($doneHandle['handle']);
+                $output = json_decode($output, true);
+                if ($output) {
+                    $this->responsePool->addResponse(Response::parse($output));
+                }
+                curl_multi_remove_handle($mh, $doneHandle['handle']);
+                curl_close($doneHandle['handle']);
+            }else{
+                $errorMsg = curl_error($doneHandle['handle']);
+                throw new Exception\ResponseReadException('Unable to connect to phantom process. Curl error: ' . $errorMsg);
             }
-            curl_multi_remove_handle($mh, $doneHandle['handle']);
-            curl_close($doneHandle['handle']);
+
         }
     }
 }

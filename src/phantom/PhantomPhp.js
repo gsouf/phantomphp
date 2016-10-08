@@ -1,35 +1,19 @@
 'use strict';
 
-var webpage = require("webpage");
-
 var PhantomPhp = function (phantom) {
-    this.pages = {};
     this.phantom = phantom;
     var self = this;
     this.handlers = {};
 };
 
 PhantomPhp.prototype = {
-    run: function (message, resolve, reject) {
-        try {
-            this.evalSrc(message.data.src, resolve, reject);
-        } catch (err) {
-            reject(err);
-        }
-    },
 
     plugHandler: function (name, handler) {
         this.handlers[name] = handler;
     },
 
-    evalSrc: function (src, resolve, reject) {
-        var handler = eval(src); // eslint-disable-line
-        handler(resolve, reject);
-    },
-
-
     /**
-     * Returns a function that should be called to return the result for this message.
+     * Returns a function that should be called to return the result for this message
      */
     createResolver: function (message, writer) {
         var self = this;
@@ -46,13 +30,12 @@ PhantomPhp.prototype = {
     },
 
 
-
     /**
-     * Returns a function that should be called when an error happened.
+     * Returns a function that should be called when an error happened during execution of action
      */
     createRejecter: function (message, writer) {
         var self = this;
-        function reject(errorMessage)
+        function reject(errorMessage, errorType)
         {
             try {
                 throw new Error(errorMessage ? errorMessage || "Error" : "Error");
@@ -63,7 +46,7 @@ PhantomPhp.prototype = {
                     data: {
                         message: err.message,
                         stack: err.stack,
-                        errorType: 'failure'
+                        errorType: errorType || 'failure'
                     }
                 });
                 message.done = true;
@@ -74,39 +57,34 @@ PhantomPhp.prototype = {
 
 
     /**
-     * called when an error happens in the gobal script ()
+     * called when an error happens in the global script
      */
-    writeRuntimeError: function (error, message, writer) {
-        if (!message) {
-            writer.writeMessage({
-                'status': 'error',
-                'error': error,
-                'data': {
-                    'errorType': 'runTimeError'
-                }
-            });
-        } else {
-            writer.writeMessage({
-                'id': message.done ? null: message.id,
-                'status': 'error',
-                'data': {
-                    'errorType': 'runTimeError',
-                    'message': error
-                },
-            });
+    writeRuntimeError: function (error, message, writer, stack) {
+        if(!stack) {
+            try {
+                throw new Error();
+            } catch (err) {
+                stack = err.stack;
+            }
         }
-    },
 
+        var data = {
+            'status': 'error',
+            'data': {
+                'stack': stack,
+                'errorType': 'runTimeError',
+                'message': error
+            }
+        };
 
-    /**
-     * Get a page or creates it if it does not exist yet
-     */
-    getPage: function (pageId) {
-        var page = this.pages[pageId];
-        if (!page) {
-            pages[pageId] = page = webpage.create();
+        if (message) {
+            if(!message.done){
+                data.id = message.id;
+            }
         }
-        return page;
+
+        writer.writeMessage(data);
+
     },
 
     processMessage: function (message, writer) {
@@ -159,43 +137,64 @@ PhantomPhp.prototype = {
         var webserver = require('webserver');
         var server = webserver.create();
         var self = this;
+
         var service = server.listen(port, function (request, response) {
 
+            var writer;
+            var message;
 
-            // Check the url path
-            var urlParts = request.url.split(/\?(.+)?/, 2);
-            if (urlParts.length >= 1) {
-                var message = {};
-                if (urlParts[0] == '/runAction') {
-                    if (request.method == 'POST') {
-                        if (request.post) {
-                            message = request.post;
-                        }
-                    } else if (urlParts.length == 2) { // else GET
-                        // Parse the query
-                        var queryParts = urlParts[1].split('&');
-                        for (var i = 0; i < queryParts.length; i++) {
-                            var queryItem = queryParts[i].split(/\=(.+)?/, 2);
-                            if (queryItem.length == 2) {
-                                message[queryItem[0]] = queryItem[1];
+            try {
+                // Check the url path
+                var urlParts = request.url.split(/\?(.+)?/, 2);
+                if (urlParts.length >= 1) {
+                    message = {};
+                    if (urlParts[0] == '/runAction') {
+                        if (request.method == 'POST') {
+                            if (request.post) {
+                                if(request.post.message){
+                                    message = JSON.parse(request.post.message);
+                                }else{
+                                    throw new Error('Query data must have a json encoded message');
+                                }
+                            }
+                        } else if (urlParts.length == 2) { // else GET
+                            // Parse the query
+                            var queryParts = urlParts[1].split('&');
+                            for (var i = 0; i < queryParts.length; i++) {
+                                var queryItem = queryParts[i].split(/\=(.+)?/, 2);
+                                if (queryItem.length == 2) {
+                                    message[queryItem[0]] = queryItem[1];
+                                }
                             }
                         }
+                        var messageProcessed = false;
+
+
+                        writer = {
+                            writeMessage : function (message) {
+                                if (!messageProcessed) {
+                                    response.statusCode = 200;
+                                    response.write(JSON.stringify(message));
+                                    response.close();
+                                    messageProcessed = true;
+                                }
+                            }
+                        };
+
+                        self.processMessage(message, writer);
+                        return;
                     }
-                    var messageProcessed = false;
-                    var writer = {
-                        writeMessage : function (message) {
-                            if (!messageProcessed) {
-                                response.statusCode = 200;
-                                response.write(JSON.stringify(message));
-                                response.close();
-                                messageProcessed = true;
-                            }
-                        }
-                    };
-
-                    self.processMessage(message, writer);
-                    return;
                 }
+
+            } catch (e) {
+                try{
+                    var errorMessage = e.message || 'Error while processing message';
+                    var errorStack   = e.stack;
+                    self.writeRuntimeError(errorMessage, message, writer, errorStack);
+                }catch (e) {
+                    console.error(e);
+                }
+                return;
             }
 
             response.close();

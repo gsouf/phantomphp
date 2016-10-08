@@ -114,6 +114,31 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('pong', $response->getData());
         $this->assertEquals('success', $response->getStatus());
         $this->assertEquals($ping->getId(), $response->getId());
+
         $client->stop();
+    }
+
+    public function testPageApi()
+    {
+
+//        $client = new HttpClient(8282);
+//        $client->start();
+
+        $channel = new HttpRequest('127.0.0.1', 8282);
+
+        $ping = new Ping();
+
+        // Create page
+        $message = new Message('pageCreate');
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 2000);
+        $pageId = $response->getData('pageId');
+
+        // Navigate
+        $message = new Message('pageNavigate', ['pageId' => $pageId, 'url' => 'http://httpbin.org/get?a']);
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 3000);
+        var_dump($response);
+//        $client->stop();
     }
 }

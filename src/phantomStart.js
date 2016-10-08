@@ -5,6 +5,11 @@ var system = require('system');
 var PhantomPhp = require(phantom.libraryPath + '/phantom/PhantomPhp.js');
 var args = system.args;
 
+// Fix error stream: https://github.com/ariya/phantomjs/issues/10150
+console.error = function () {
+    require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
+};
+
 var parsedArgs;
 if (args.length > 1) {
     parsedArgs = JSON.parse(args[1]);
@@ -18,6 +23,8 @@ if (typeof parsedArgs != 'object') {
 } else {
     var mode = parsedArgs.mode || 'stream';
     var plugins = parsedArgs.plugins || [];
+
+    plugins.push(phantom.libraryPath + '/phantom/page.handlers.js');
 
     var phantomPhp = new PhantomPhp(phantom);
 
