@@ -1,13 +1,31 @@
 'use strict';
 
-
 var system = require('system');
 var PhantomPhp = require(phantom.libraryPath + '/phantom/PhantomPhp.js');
 var args = system.args;
 
 // Fix error stream: https://github.com/ariya/phantomjs/issues/10150
 console.error = function () {
-    require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
+    var date = new Date();
+    var hour = date.getHours();
+    hour = hour < 10 ? '0' + hour : hour;
+    var minute = date.getMinutes();
+    minute = minute < 10 ? '0' + minute : minute;
+    var secondes = date.getSeconds();
+    secondes = secondes < 10 ? '0' + secondes : secondes;
+    var day = date.getDate();
+    day = day < 10 ? '0' + day : day;
+    var month = date.getMonth() + 1;
+    month = month < 10 ? '0' + month : month;
+    var dataStr = date.getUTCFullYear() + "-"
+        + month + '-'
+        + day  + ' '
+        + hour + ':'
+        + minute + ':'
+        + secondes;
+
+
+    system.stderr.write('[' + dataStr + '] ' + Array.prototype.join.call(arguments, ' ') + '\n');
 };
 
 var parsedArgs;
@@ -43,8 +61,16 @@ if (typeof parsedArgs != 'object') {
     });
 
     phantomPhp.plugHandler("exit", function (message, resolve) {
-        resolve();
-        setTimeout(phantom.exit, 0);
+        resolve('exit');
+
+        if (phantomPhp.beforeClose) {
+            phantomPhp.beforeClose();
+        }
+
+        setTimeout(function () {
+            console.log('exit');
+            phantom.exit()
+        }, 0);
     });
 
     var listening = false;
@@ -60,9 +86,9 @@ if (typeof parsedArgs != 'object') {
                 host = parsedArgs.httpHost + ":"+ host;
             }
             listening = phantomPhp.listenHttp(host);
-            if(!listening){
+            if (!listening) {
                 console.error('Unable to start phantom server');
-            }else{
+            } else {
                 console.log('listening message on: ' + host);
             }
             break;
@@ -72,9 +98,9 @@ if (typeof parsedArgs != 'object') {
             break;
     }
 
-    if(listening){
+    if (listening) {
         console.log('ok');
-    }else{
+    } else {
         console.log('error');
         setTimeout(phantom.exit, 0);
     }

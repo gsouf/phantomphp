@@ -152,7 +152,18 @@ class PhantomClient implements ChannelInterface
         $exit = new ExitMessage();
         $this->sendMessage($exit);
         $this->waitForResponse($exit, 10000);
-        $this->process->close();
+
+        $timeout = 1;
+        $waitUnit = microtime(true) + $timeout;
+        while (microtime(true) < $waitUnit) {
+            if (!$this->process->isRunning()) {
+                $this->process->close();
+                return;
+            }
+            usleep(500);
+        }
+
+        throw new Exception('Unable to close the process');
     }
 
 

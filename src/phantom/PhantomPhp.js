@@ -137,8 +137,9 @@ PhantomPhp.prototype = {
         var webserver = require('webserver');
         var server = webserver.create();
         var self = this;
+        var started;
 
-        var started = server.listen(port, function (request, response) {
+        started = server.listen(port, function (request, response) {
 
             var writer;
             var message;
@@ -167,9 +168,8 @@ PhantomPhp.prototype = {
                                 }
                             }
                         }
+
                         var messageProcessed = false;
-
-
                         writer = {
                             writeMessage : function (message) {
                                 if (!messageProcessed) {
@@ -199,6 +199,27 @@ PhantomPhp.prototype = {
             response.close();
 
         });
+
+        if (started) {
+            self.beforeClose = function () {
+
+                var wait = function (ms) {
+                    var start = Date.now(),
+                        now = start;
+                    while (now - start < ms) {
+                        now = Date.now();
+                    }
+                };
+
+                // Wait to previous response to be fully sent
+                wait(200);
+                setTimeout(function () {
+                    server.close()}, 1);
+                // Wait to make sure it closes before phantom process
+                wait(10);
+                self.beforeClose = null;
+            };
+        }
 
         return started;
     }

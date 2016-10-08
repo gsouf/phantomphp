@@ -121,12 +121,11 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
     public function testPageApi()
     {
 
-//        $client = new HttpClient(8282);
-//        $client->start();
+
+        $client = new HttpClient(8282);
+        $client->start();
 
         $channel = new HttpRequest('127.0.0.1', 8282);
-
-        $ping = new Ping();
 
         // Create page
         $message = new Message('pageCreate');
@@ -138,7 +137,9 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $message = new Message('pageNavigate', ['pageId' => $pageId, 'url' => 'http://httpbin.org/get?a']);
         $channel->sendMessage($message);
         $response = $channel->waitForResponse($message, 3000);
-        var_dump($response);
-//        $client->stop();
+        $this->assertEquals('success', $response->getStatus());
+        $this->assertEquals('http://httpbin.org/get?a', $response->getData('url'));
+
+        $client->stop();
     }
 }
