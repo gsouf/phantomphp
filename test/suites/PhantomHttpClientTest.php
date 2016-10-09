@@ -15,11 +15,11 @@ use PhantomPhp\Response;
 /**
  * @covers PhantomPhp\PhantomClient
  */
-class PhantomClientTest extends PhantomClientTestCase
+class PhantomHttpClientTest extends PhantomClientTestCase
 {
 
     public function getClient()
     {
-        return new PhantomClient();
+        return new HttpClient(8080);
     }
 }

@@ -61,6 +61,10 @@ if (typeof parsedArgs != 'object') {
     });
 
     phantomPhp.plugHandler("exit", function (message, resolve) {
+        if (phantomPhp.beforeResolveClose) {
+            phantomPhp.beforeResolveClose();
+        }
+
         resolve('exit');
 
         if (phantomPhp.beforeClose) {

@@ -109,11 +109,23 @@ PhantomPhp.prototype = {
         var writer = {
             writeMessage : function (message) {
                 output.writeLine(JSON.stringify(message));
+
+                if (!self.exitRequired) {
+                    setTimeout(loop, 0);
+                }
             }
         };
 
+        // When resolving exit command, the loop hangs on "readLine" and phantom.exit is called only after a new line
+        // is passed to stdin. Then we set an exit flag to true to avoid the loop to start again
+        self.beforeResolveClose = function () {
+            self.exitRequired = true;
+        };
+
+
         var loop = function () {
             // stdin.readLine() is sync and halts until a whole line is read
+            console.log('LISTENING');
             var line = input.readLine();
             var message;
             try {
@@ -126,8 +138,6 @@ PhantomPhp.prototype = {
             if (message) {
                 self.processMessage(message, writer);
             }
-
-            setTimeout(loop, 0);
         };
 
         setTimeout(loop, 0);

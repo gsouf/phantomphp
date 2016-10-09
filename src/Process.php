@@ -86,6 +86,7 @@ class Process
     public function close()
     {
         proc_close($this->process);
+
         $this->status = self::STATUS_TERMINATED;
     }
 }

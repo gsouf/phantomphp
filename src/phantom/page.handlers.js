@@ -50,7 +50,8 @@ var createPage = function (pageId) {
 };
 
 
-function findPageOrReject(pageId, reject){
+function findPageOrReject(pageId, reject)
+{
     if (!pages[pageId]) {
         reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
     } else {
@@ -77,20 +78,22 @@ module.exports = {
             var page;
 
             if (page = findPageOrReject(pageId, reject)) {
-
                 pagesResources[pageId] = {
                     error: null,
                     headers: null,
                     statusCode: null
                 };
 
+                console.log('SEND');
                 page.open(url, {}, function (status) {
+                        console.log('DONE');
                     if (status !== 'success') {
                         reject('Could not fetch the page for the url: "' + url + '". Reason: ' + pagesResources[pageId].error, 'CannotNavigateToUrl');
                     } else {
                         resolve({url: page.url});
                     }
                 });
+                console.log('SENT');
             }
         },
 
@@ -103,9 +106,9 @@ module.exports = {
             }
         },
 
-        "pageList": function(message, resolve, reject, phantomPhp){
+        "pageList": function (message, resolve, reject, phantomPhp) {
             var list = [];
-            for(var i in pages){
+            for (var i in pages) {
                 list.push({'id': i, url: pages[i].url});
             }
             resolve(list);
@@ -117,10 +120,12 @@ module.exports = {
             var page;
 
             if (page = findPageOrReject(pageId, reject)) {
-                if(!script){
+                if (!script) {
                     reject('No script to run', 'NoScriptToRun');
-                }else{
+                } else {
+                    // @codingStandardsIgnoreStart
                     var handler = Function(script);
+                    // @codingStandardsIgnoreEnd
                     resolve(page.evaluate(handler));
                 }
             }
