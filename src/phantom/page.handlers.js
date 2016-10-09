@@ -33,7 +33,7 @@ var preparePage = function (pageId) {
     };
 };
 
-var createPage = function (pageId, options) {
+var createPage = function (pageId) {
     if (!pageId) {
         do {
             pageId = generatePageId();
@@ -54,7 +54,7 @@ var createPage = function (pageId, options) {
 module.exports = {
     handlers: {
         "pageCreate": function (message, resolve, reject, phantomPhp) {
-            var pageId = createPage(null, message.data ? message.data.pageId : null);
+            var pageId = createPage(message.data ? message.data.pageId : null);
 
             if (false === pageId) {
                 reject('Page with id ' + pageId + ' was already created', 'pageIdAlreadyExists');
@@ -97,6 +97,28 @@ module.exports = {
                 var page = pages[pageId];
                 resolve({DOM: page.content});
             }
+        },
+
+        "pageList": function(message, resolve, reject, phantomPhp){
+            var list = [];
+            for(var i in pages){
+                list.push({'id': i, url: pages[i].url});
+            }
+            resolve(list);
+        },
+
+        "pageRunScript": function (message, resolve, reject, phantomPhp) {
+            var pageId = message.data.pageId;
+            var script = message.data.script;
+
+            if (!pages[pageId]) {
+                reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
+            } else {
+                var page = pages[pageId];
+                resolve({DOM: page.content});
+            }
         }
+
+
     }
 };

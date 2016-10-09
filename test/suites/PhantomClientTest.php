@@ -132,7 +132,9 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $message = new Message('pageCreate');
         $channel->sendMessage($message);
         $response = $channel->waitForResponse($message, 2000);
+        $this->assertEquals('success', $response->getStatus());
         $pageId = $response->getData('pageId');
+        $this->assertNotEmpty($pageId);
 
 
         // Navigate
@@ -162,6 +164,28 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('b', $element->args->a);
         $this->assertEquals('http://httpbin.org/get?a=b', $element->url);
 
+
+        // Liste pages
+        $message = new Message('pageList');
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 2000);
+        $this->assertEquals([['id' => $pageId, 'url' => 'http://httpbin.org/get?a=b']], $response->getData());
+        // Create an empty page to test list with empty pages
+        $message = new Message('pageCreate', ['pageId' => 'foo']);
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 2000);
+        $this->assertEquals('foo', $response->getData('pageId'));
+        // Liste pages
+        $message = new Message('pageList');
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 2000);
+        $this->assertEquals(
+            [
+                ['id' => $pageId, 'url' => 'http://httpbin.org/get?a=b'],
+                ['id' => 'foo', 'url' => 'about:blank']
+            ],
+            $response->getData()
+        );
 
 
 
