@@ -50,6 +50,14 @@ var createPage = function (pageId) {
 };
 
 
+function findPageOrReject(pageId, reject){
+    if (!pages[pageId]) {
+        reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
+    } else {
+        return pages[pageId];
+    }
+}
+
 
 module.exports = {
     handlers: {
@@ -66,11 +74,9 @@ module.exports = {
         "pageNavigate": function (message, resolve, reject, phantomPhp) {
             var pageId = message.data.pageId;
             var url = message.data.url;
+            var page;
 
-            if (!pages[pageId]) {
-                reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
-            } else {
-                var page = pages[pageId];
+            if (page = findPageOrReject(pageId, reject)) {
 
                 pagesResources[pageId] = {
                     error: null,
@@ -90,11 +96,9 @@ module.exports = {
 
         "pageGetDom": function (message, resolve, reject, phantomPhp) {
             var pageId = message.data.pageId;
+            var page;
 
-            if (!pages[pageId]) {
-                reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
-            } else {
-                var page = pages[pageId];
+            if (page = findPageOrReject(pageId, reject)) {
                 resolve({DOM: page.content});
             }
         },
@@ -110,12 +114,15 @@ module.exports = {
         "pageRunScript": function (message, resolve, reject, phantomPhp) {
             var pageId = message.data.pageId;
             var script = message.data.script;
+            var page;
 
-            if (!pages[pageId]) {
-                reject('Page with id ' + pageId + ' does not exist', 'pageDoesNotExist');
-            } else {
-                var page = pages[pageId];
-                resolve({DOM: page.content});
+            if (page = findPageOrReject(pageId, reject)) {
+                if(!script){
+                    reject('No script to run', 'NoScriptToRun');
+                }else{
+                    var handler = Function(script);
+                    resolve(page.evaluate(handler));
+                }
             }
         }
 

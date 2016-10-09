@@ -188,6 +188,17 @@ class PhantomClientTest extends \PHPUnit_Framework_TestCase
         );
 
 
+        // Run script
+        $message = new Message(
+            'pageRunScript',
+            [
+                'pageId' => $pageId,
+                'script' => 'return JSON.parse(document.getElementsByTagName("pre")[0].textContent).headers.Host'
+            ]
+        );
+        $channel->sendMessage($message);
+        $response = $channel->waitForResponse($message, 2000);
+        $this->assertEquals('httpbin.org', $response->getData());
 
         $client->stop();
     }
