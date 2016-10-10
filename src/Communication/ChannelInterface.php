@@ -17,9 +17,9 @@ interface ChannelInterface
     /**
      * @param Message $message
      * @param int $timeout timeout in milliseconds
-     * @param int $tryDelay delay between to tries of reading message
+     * @param int $tryDelay delay between two tries for reading message
      * @return Response
      * @throws TimeoutException
      */
-    public function waitForResponse(Message $message, $timeout, $tryDelay = 50);
+    public function waitForResponse(Message $message, $timeout, $tryDelay = null);
 }

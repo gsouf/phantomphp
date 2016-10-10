@@ -61,12 +61,16 @@ class ProcessStream implements ChannelInterface
     /**
      * @param Message $message
      * @param int $timeout timeout in milliseconds
-     * @param int $tryDelay delay between to tries of reading message
+     * @param int $tryDelay delay between two tries for reading message in ms
      * @return Response
      * @throws Exception\TimeoutException
      */
-    public function waitForResponse(Message $message, $timeout, $tryDelay = 50)
+    public function waitForResponse(Message $message, $timeout, $tryDelay = null)
     {
+        if(null == $tryDelay){
+            $tryDelay = 3;
+        }
+
         if ($response = $this->responsePool->getResponse($message->getId())) {
             return $response;
         }

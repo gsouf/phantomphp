@@ -70,8 +70,12 @@ class HttpRequest implements ChannelInterface
      * @return Response
      * @throws Exception\ResponseReadException
      */
-    public function waitForResponse(Message $message, $timeout, $tryDelay = 50)
+    public function waitForResponse(Message $message, $timeout, $tryDelay = null)
     {
+        if(null == $tryDelay){
+            $tryDelay = 3;
+        }
+
         if ($response = $this->responsePool->getResponse($message->getId())) {
             return $response;
         }

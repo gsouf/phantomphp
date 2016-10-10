@@ -126,13 +126,13 @@ class PhantomClient implements ChannelInterface
     {
         $dieOn = microtime(true) + 1000 * 500; // 500ms
         do {
-            usleep(1000 * 20); // 20ms
+            usleep(1000 * 3); // 3ms
             $r = $process->readLine();
 
             $r = trim($r);
 
             if ($r === 'ok') {
-                if ($this->ping(5000)) {
+                if ($this->ping(1000)) {
                     return true;
                 } else {
                     break;
@@ -200,7 +200,7 @@ class PhantomClient implements ChannelInterface
     }
 
 
-    public function waitForResponse(Message $message, $timeout, $tryDelay = 50)
+    public function waitForResponse(Message $message, $timeout, $tryDelay = null)
     {
         return $this->getCommunicationChannel()->waitForResponse($message, $timeout, $tryDelay);
     }
