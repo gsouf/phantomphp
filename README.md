@@ -57,7 +57,7 @@ Multi process communication
 
 PhnatomPhp supports different communication channel. A communication channel represents a way to communicate
 with the underlying phantomjs process. By default php and phantomjs communicate through pipes, but you can turn 
-phantomjs in a real server listening for http messages from any sources.
+phantomjs in a real application waiting for any script to interact with it.
 
 To do this just start a HttpClient with a given port and you are ready to play with:
 
