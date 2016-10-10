@@ -3,7 +3,7 @@
   "name": "phantomphp/phantomphp",
   "description": "Seamless management and comunication with phantomjs process from php",
   "keywords": ["phantomjs"],
-  "homepage": "https://github.com/serp-spider/phantomphp",
+  "homepage": "https://github.com/gsouf/phantomphp",
   "license": "Fair",
 
   "authors": [
