@@ -84,16 +84,13 @@ module.exports = {
                     statusCode: null
                 };
 
-                console.log('SEND');
                 page.open(url, {}, function (status) {
-                        console.log('DONE');
                     if (status !== 'success') {
                         reject('Could not fetch the page for the url: "' + url + '". Reason: ' + pagesResources[pageId].error, 'CannotNavigateToUrl');
                     } else {
                         resolve({url: page.url});
                     }
                 });
-                console.log('SENT');
             }
         },
 

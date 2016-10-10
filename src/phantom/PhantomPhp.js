@@ -125,7 +125,6 @@ PhantomPhp.prototype = {
 
         var loop = function () {
             // stdin.readLine() is sync and halts until a whole line is read
-            console.log('LISTENING');
             var line = input.readLine();
             var message;
             try {
