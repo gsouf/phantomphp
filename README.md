@@ -103,21 +103,6 @@ $dom = $page->getDomContent();
 
 ```
 
-
-### Message
-
-PhantomPhp share information with phantomjs through message. For instance to know if the process is responding you will 
-issue a ping message:
-
-TODO: Ping example
-
-### Custom actions
-
-Each message issues an action: ping, exit... but you can as much as action as you want.
-
-TODO: Plug action example
-
-
 Roadmap
 -------
 
