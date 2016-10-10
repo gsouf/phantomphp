@@ -67,7 +67,7 @@ class ProcessStream implements ChannelInterface
      */
     public function waitForResponse(Message $message, $timeout, $tryDelay = null)
     {
-        if(null == $tryDelay){
+        if (null == $tryDelay) {
             $tryDelay = 3;
         }
 

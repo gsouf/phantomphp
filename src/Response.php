@@ -54,6 +54,10 @@ class Response
         return $this->data;
     }
 
+    public function isSuccessful()
+    {
+        return $this->getStatus() === self::STATUS_SUCCESS;
+    }
 
     public static function parse($rawMessage)
     {

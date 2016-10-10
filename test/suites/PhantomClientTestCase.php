@@ -7,6 +7,8 @@ namespace PhantomPhp\Test;
 
 use PhantomPhp\Message;
 use PhantomPhp\Message\Ping;
+use PhantomPhp\Page;
+use PhantomPhp\PageManager;
 use PhantomPhp\PhantomClient;
 use PhantomPhp\Response;
 
@@ -163,6 +165,35 @@ abstract class PhantomClientTestCase extends \PHPUnit_Framework_TestCase
         $channel->sendMessage($message);
         $response = $channel->waitForResponse($message, 2000);
         $this->assertEquals('httpbin.org', $response->getData());
+
+        $client->stop();
+    }
+
+
+    public function testPageHighLevelApi()
+    {
+        $client = $this->getClient();
+        $client->start();
+
+        $pageManager = new PageManager($client->getCommunicationChannel());
+
+        $page = $pageManager->createPage('foo');
+        $this->assertInstanceOf(Page::class, $page);
+        $this->assertEquals('foo', $page->getPageId());
+
+        $url = $page->navigate('http://httpbin.org/redirect-to?url=http://httpbin.org/get?a=b');
+        $this->assertEquals('http://httpbin.org/get?a=b', $url);
+
+        $dom = new \SimpleXMLElement($page->getDomContent());
+        $element = $dom->xpath('//pre');
+        $element = json_decode((string)$element[0]);
+
+        $this->assertEquals('b', $element->args->a);
+        $this->assertEquals('http://httpbin.org/get?a=b', $element->url);
+
+
+        $data = $page->runScript('return JSON.parse(document.getElementsByTagName("pre")[0].textContent).headers.Host');
+        $this->assertEquals('httpbin.org', $data);
 
         $client->stop();
     }
