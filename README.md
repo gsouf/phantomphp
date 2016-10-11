@@ -1,7 +1,7 @@
 PhantomPhp
 ==========
 
-**WIP** - This project is under heavy development if you can use it now, but be aware that everything can change at anytime.
+**WIP** - This project is under heavy development you can use it now, but be aware that everything can change at anytime.
 
 The project
 -----------
