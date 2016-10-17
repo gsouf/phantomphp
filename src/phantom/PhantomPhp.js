@@ -135,7 +135,17 @@ PhantomPhp.prototype = {
             }
 
             if (message) {
-                self.processMessage(message, writer);
+                try {
+                    self.processMessage(message, writer);
+                }  catch (e) {
+                    try {
+                        var errorMessage = e.message || 'Error while processing message';
+                        var errorStack   = e.stack;
+                        self.writeRuntimeError(errorMessage, message, writer, errorStack);
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
             }
         };
 
