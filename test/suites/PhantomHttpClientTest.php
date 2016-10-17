@@ -20,6 +20,6 @@ class PhantomHttpClientTest extends PhantomClientTestCase
 
     public function getClient()
     {
-        return new HttpClient(8080);
+        return new HttpClient(8963);
     }
 }

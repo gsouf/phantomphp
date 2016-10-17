@@ -1,9 +1,12 @@
 'use strict';
 
+var PageManager = require(phantom.libraryPath + '/phantom/PageManager.js');
+
 var PhantomPhp = function (phantom) {
     this.phantom = phantom;
     var self = this;
     this.handlers = {};
+    this.pageManager = new PageManager();
 };
 
 PhantomPhp.prototype = {
@@ -137,7 +140,7 @@ PhantomPhp.prototype = {
             if (message) {
                 try {
                     self.processMessage(message, writer);
-                }  catch (e) {
+                } catch (e) {
                     try {
                         var errorMessage = e.message || 'Error while processing message';
                         var errorStack   = e.stack;
